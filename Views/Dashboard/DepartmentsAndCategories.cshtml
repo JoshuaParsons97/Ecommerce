@@ -1,0 +1,166 @@
+@model IEnumerable<ProductDepartment>
+@{
+    ViewData["Title"] = "DepartmentsAndCategories";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body id="page-top">
+    <div id="wrapper">
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <div class="container">
+                    <div class="card shadow mt-5">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 font-weight-bold">Departments and Categories</p>
+                        </div>
+                        <div class="card-body">
+                            @await Html.PartialAsync("~/Views/Shared/ErrorAlert.cshtml")
+                            @await Html.PartialAsync("~/Views/Shared/SuccessAlert.cshtml")
+                            <div class="row">
+                                <div class="col-md-4">
+                                    @using (Html.BeginForm("CreateDepartment", "DepartmentCategory", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <div class="p-2 m-2 border">
+                                            <div class="col-md-12">
+                                                <label class="form-label">Department Name</label>
+                                                <input type="text" name="DepartmentName" class="form-control" required />
+                                            </div>
+                                            <div class="col-md-12">
+                                                <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Create Department</button>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @using (Html.BeginForm("CreateCategory", "DepartmentCategory", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <div class="p-2 m-2 border">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">Department</label>
+                                                    <select name="Department" class="form-control" required>
+                                                        <option value="">Select</option>
+                                                        @foreach (ProductDepartment Department in Model)
+                                                        {
+                                                            <option value="@Department.Key">@Department.Description</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label class="form-label">Category</label>
+                                                <input type="text" name="CategoryName" class="form-control" required />
+                                            </div>
+                                            <div class="col-md-12">
+                                                <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Create Category</button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-8 overflow-auto" style="max-height:500px">
+                                    <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+                                        <table class="table dataTable my-0" id="dataTable">
+                                            <tbody>
+                                                @foreach (ProductDepartment ProductDepartment in Model)
+                                                {
+                                                    <tr>
+                                                        <td style="font-weight:bold">
+                                                            @ProductDepartment.Description
+                                                            <button onclick="EditDepartment(this)" class="btn btn-link btn-sm" type="button" DepartmentID="@ProductDepartment.Key" DepartmentName="@ProductDepartment.Description">Edit</button>
+                                                        </td>
+                                                        <td>@Html.ActionLink(ProductDepartment.Hidden ? "Unhide" : "Hide", "HideUnhideDepartment", "DepartmentCategory", new { @DepartmentID = ProductDepartment.Key, @MarkAsHidden = !ProductDepartment.Hidden}, new { @class = "btn btn-dark btn-sm float-right"}) </td>
+                                                    </tr>
+                                                    @foreach (ProductCategory ProductCategory in ProductDepartment.ProductCategories)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                @ProductCategory.Description
+                                                                <button class="btn btn-link btn-sm" type="button" CategoryID="@ProductCategory.Key" CategoryName="@ProductCategory.Description" onclick="EditCategory(this)">Edit</button>
+                                                            </td>
+                                                            <td> @Html.ActionLink(ProductCategory.Hidden ? "Unhide" : "Hide", "HideUnhideCategory", "DepartmentCategory", new { @CategoryID = ProductCategory.Key, @MarkAsHidden = !ProductCategory.Hidden }, new { @class = "btn btn-dark btn-sm float-right" })</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+<!-- Modal -->
+<div class="modal fade" id="DepartmentModal" tabindex="-1" aria-labelledby="DepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="DepartmentModalLabel">Edit Department</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @using (Html.BeginForm("EditDepartment", "DepartmentCategory", FormMethod.Post))
+            {
+                <div class="modal-body">
+
+                    <label class="form-label">Department Name</label>
+                    <input type="text" name="EditDepartmentName" id="EditDepartmentName" class="form-control" required />
+                    <input type="hidden" name="EditDepartmentID" id="EditDepartmentID" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="CategoryModal" tabindex="-1" aria-labelledby="CategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="CategoryModalLabel">Edit Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @using (Html.BeginForm("EditCategory", "DepartmentCategory", FormMethod.Post))
+            {
+                <div class="modal-body">
+
+                    <label class="form-label">Category Name</label>
+                    <input type="text" name="EditCategoryName" id="EditCategoryName" class="form-control" required />
+                    <input type="hidden" name="EditCategoryID" id="EditCategoryID" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function EditDepartment(element) {
+        var DepartmentID = $(element).attr('DepartmentID');
+        var DepartmentName = $(element).attr('DepartmentName');
+        $('#EditDepartmentID').val(DepartmentID);
+        $('#EditDepartmentName').val(DepartmentName);
+        $('#DepartmentModal').modal('show');
+    }
+
+    function EditCategory(element) {
+        var CategoryID = $(element).attr('CategoryID');
+        var CategoryName = $(element).attr('CategoryName');
+        $('#EditCategoryID').val(CategoryID);
+        $('#EditCategoryName').val(CategoryName);
+        $('#CategoryModal').modal('show');
+    }
+</script>

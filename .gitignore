@@ -1,0 +1,10 @@
+*.vsidx
+*.dll
+*.pdb
+*.exe
+*.lock
+
+.vs/
+bin/
+obj/
+Properties/
